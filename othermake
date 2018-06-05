@@ -1,0 +1,24 @@
+EXCLUDE_OBJS=strace-statfs64.o strace-main.o strace-ucopy.o
+OBJECTS=$(wildcard *.o)
+NEWOBJS=$(filter-out $(EXCLUDE_OBJS),$(OBJECTS))
+
+.PHONY: print_vars
+
+print_vars:
+	@echo $(NEWOBJS)
+
+main: strace-main.o libprintstrace.a
+	gcc  -o main strace-main.o libprintstrace.a -lrt
+
+strace-main.o: main.c
+	gcc -DHAVE_CONFIG_H -D_GNU_SOURCE -I. -I./linux/ -I./linux/i386 -c -o strace-main.o main.c
+
+strace-strace.o: strace.c
+	gcc -DHAVE_CONFIG_H -I./ -I./linux -I./linux/i386 -c -o strace-strace.o strace.c
+
+libprintstrace.a: $(NEWOBJS)
+	ar rcs libprintstrace.a $(NEWOBJS)
+
+clean:
+	- rm *.o
+	- rm *.a
